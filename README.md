@@ -63,7 +63,7 @@ C’est tout ! Tu peux maintenant commencer à créer ton arbre.
 | Fonction                      | Description |
 |------------------------------|-------------|
 | ➕ Ajouter un membre          | Entrée manuelle dans l’interface |
-| 🧬 Définir une relation       | Parent, enfant, frère/sœur |
+| 🧬 Définir une relation       | Parent, enfant, conjoint |
 | 🧭 Trouver un lien familial   | Affiche le chemin entre deux membres |
 | 🌿 Visualiser l’arbre         | Génération dynamique d’un graphe familial |
 
