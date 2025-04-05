@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbre Généalogique</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .welcome-screen {
+            text-align: center;
+            padding: 40px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .form-container {
+            max-width: 600px;
+            width: 100%;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        #treeContainer {
+            position: relative;
+            width: 100%;
+            height: 800px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: auto;
+            padding: 20px;
+        }
+        .person-card {
+            position: absolute;
+            width: 180px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .person-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+        }
+        .person-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border: 2px solid #4CAF50;
+        }
+        .person-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .card-buttons {
+            display: flex;
+            justify-content: space-around;
+        }
+        .card-btn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .card-btn:hover {
+            background-color: #0b7dda;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .tree-line {
+            position: absolute;
+            background-color: #4CAF50;
+            z-index: -1;
+        }
+        .horizontal-line {
+            height: 2px;
+        }
+        .vertical-line {
+            width: 2px;
+        }
+        .profile-details {
+            text-align: left;
+            margin-top: 20px;
+        }
+        .profile-details h3 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .detail-item {
+            margin-bottom: 10px;
+        }
+        .detail-label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .top-bar {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <div class="welcome-screen" id="welcomeScreen">
+            <h1>Bienvenue dans votre Arbre Généalogique</h1>
+            <p>Créez et visualisez votre histoire familiale</p>
+            <button class="btn" id="createTreeBtn">Créer votre arbre généalogique</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="formModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeFormModal">&times;</span>
+            <h2>Informations personnelles</h2>
+            <form id="personForm">
+                <div class="form-group">
+                    <label for="name">Nom complet <span style="color: red;">*</span></label>
+                    <input type="text" id="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="photo">URL de la photo</label>
+                    <input type="text" id="photo" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="birthDate">Date de naissance</label>
+                    <input type="date" id="birthDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="familyName">Nom de famille</label>
+                    <input type="text" id="familyName" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="city">Ville de résidence</label>
+                    <input type="text" id="city" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="profession">Métier / Profession</label>
+                    <input type="text" id="profession" class="form-control">
+                </div>
+                <div class="form-group" id="relationshipDiv" style="display: none;">
+                    <label for="relationship">Relation avec <span id="relationWithName"></span></label>
+                    <select id="relationship" class="form-control">
+                        <option value="parent">Parent</option>
+                        <option value="child">Enfant</option>
+                        <option value="spouse">Conjoint</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Ajouter à l'arbre</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeDetailsModal">&times;</span>
+            <h2 id="detailsName">Détails de la personne</h2>
+            <img id="detailsPhoto" class="person-photo" src="https://via.placeholder.com/150" alt="Photo">
+            <div class="profile-details">
+                <div class="detail-item">
+                    <span class="detail-label">Date de naissance:</span>
+                    <span id="detailsBirthDate">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Nom de famille:</span>
+                    <span id="detailsFamilyName">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Ville:</span>
+                    <span id="detailsCity">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Profession:</span>
+                    <span id="detailsProfession">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const createTreeBtn = document.getElementById('createTreeBtn');
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            const mainContainer = document.getElementById('mainContainer');
+            const formModal = document.getElementById('formModal');
+            const detailsModal = document.getElementById('detailsModal');
+            const closeFormModal = document.getElementById('closeFormModal');
+            const closeDetailsModal = document.getElementById('closeDetailsModal');
+            const personForm = document.getElementById('personForm');
+            const relationshipDiv = document.getElementById('relationshipDiv');
+            const relationWithName = document.getElementById('relationWithName');
+
+            let treeData = {
+                people: [],
+                relations: []
+            };
+            let currentPersonId = null;
+
+            // Check if tree data exists in local storage
+            const storedData = localStorage.getItem('genealogyTreeData');
+            if (storedData) {
+                treeData = JSON.parse(storedData);
+                showTreeView();
+            }
+
+            createTreeBtn.addEventListener('click', function() {
+                if (treeData.people.length === 0) {
+                    // Show form for the first person
+                    relationshipDiv.style.display = 'none';
+                    openFormModal();
+                } else {
+                    showTreeView();
+                }
+            });
+
+            closeFormModal.addEventListener('click', function() {
+                formModal.style.display = 'none';
+            });
+
+            closeDetailsModal.addEventListener('click', function() {
+                detailsModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target === formModal) {
+                    formModal.style.display = 'none';
+                }
+                if (event.target === detailsModal) {
+                    detailsModal.style.display = 'none';
+                }
+            });
+
+            personForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('name').value;
+                const photo = document.getElementById('photo').value || 'https://via.placeholder.com/150';
+                const birthDate = document.getElementById('birthDate').value;
+                const familyName = document.getElementById('familyName').value;
+                const city = document.getElementById('city').value;
+                const profession = document.getElementById('profession').value;
+                
+                const person = {
+                    id: Date.now().toString(),
+                    name,
+                    photo,
+                    birthDate,
+                    familyName,
+                    city,
+                    profession
+                };
+                
+                treeData.people.push(person);
+                
+                if (currentPersonId !== null) {
+                    const relationship = document.getElementById('relationship').value;
+                    
+                    treeData.relations.push({
+                        id: Date.now().toString() + '_rel',
+                        person1Id: currentPersonId,
+                        person2Id: person.id,
+                        type: relationship
+                    });
+                }
+                
+                // Save to local storage
+                localStorage.setItem('genealogyTreeData', JSON.stringify(treeData));
+                
+                // Reset form and close modal
+                personForm.reset();
+                formModal.style.display = 'none';
+                
+                // Update tree view
+                showTreeView();
+            });
+
+            function openFormModal(personId = null) {
+                currentPersonId = personId;
+                
+                if (personId !== null) {
+                    // Adding a relation to an existing person
+                    const person = treeData.people.find(p => p.id === personId);
+                    relationWithName.textContent = person.name;
+                    relationshipDiv.style.display = 'block';
+                } else {
+                    relationshipDiv.style.display = 'none';
+                }
+                
+                formModal.style.display = 'block';
+            }
+
+            function showTreeView() {
+                welcomeScreen.style.display = 'none';
+                
+                // Create tree container if it doesn't exist
+                let treeContainer = document.getElementById('treeContainer');
+                if (!treeContainer) {
+                    mainContainer.innerHTML = `
+                        <div style="width: 100%; max-width: 1200px;">
+                            <div class="top-bar">
+                                <h1>Votre Arbre Généalogique</h1>
+                            </div>
+                            <div id="treeContainer"></div>
+                        </div>
+                    `;
+                    treeContainer = document.getElementById('treeContainer');
+                }
+                
+                renderTree(treeContainer);
+            }
+
+            function renderTree(container) {
+                container.innerHTML = '';
+                
+                // Calculate positions
+                const positions = calculatePositions();
+                
+                // Draw connection lines first so they appear behind cards
+                drawConnectionLines(container, positions);
+                
+                // Render person cards
+                treeData.people.forEach(person => {
+                    const position = positions[person.id];
+                    if (!position) return;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'person-card';
+                    card.style.left = `${position.x}px`;
+                    card.style.top = `${position.y}px`;
+                    
+                    card.innerHTML = `
+                        <img class="person-photo" src="${person.photo}" alt="${person.name}">
+                        <div class="person-name">${person.name}</div>
+                        <div class="card-buttons">
+                            <button class="card-btn view-details" data-id="${person.id}">Voir détails</button>
+                            <button class="card-btn add-relation" data-id="${person.id}">Ajouter relation</button>
+                        </div>
+                    `;
+                    
+                    container.appendChild(card);
+                });
+                
+                // Add event listeners to buttons
+                document.querySelectorAll('.view-details').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const personId = this.getAttribute('data-id');
+                        openDetailsModal(personId);
+                    });
+                });
+                
+                document.querySelectorAll('.add-relation').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const personId = this.getAttribute('data-id');
+                        openFormModal(personId);
+                    });
+                });
+            }
+
+            function calculatePositions() {
+                const positions = {};
+                const generation = {};
+                const horizontalPosition = {};
+                const levelHeight = 200;
+                const cardWidth = 180;
+                const horizontalSpacing = 20;
+                
+                // If no people, return empty positions
+                if (treeData.people.length === 0) return positions;
+                
+                // Find root person (first person added) if tree is empty
+                let rootPerson = treeData.people[0];
+                
+                // Assign level 0 to root
+                generation[rootPerson.id] = 0;
+                
+                // Assign horizontal position 0 to root for its level
+                if (!horizontalPosition[0]) horizontalPosition[0] = [];
+                horizontalPosition[0].push(rootPerson.id);
+                
+                // Calculate generation levels for all connected people
+                const processQueue = [rootPerson.id];
+                const processed = new Set([rootPerson.id]);
+                
+                while (processQueue.length > 0) {
+                    const currentId = processQueue.shift();
+                    const currentGen = generation[currentId];
+                    
+                    // Process relations
+                    const relations = treeData.relations.filter(r => 
+                        r.person1Id === currentId || r.person2Id === currentId);
+                    
+                    for (const relation of relations) {
+                        const otherId = relation.person1Id === currentId ? 
+                            relation.person2Id : relation.person1Id;
+                        
+                        if (processed.has(otherId)) continue;
+                        
+                        let otherGen;
+                        if (relation.type === 'parent' && relation.person2Id === otherId) {
+                            otherGen = currentGen - 1;
+                        } else if (relation.type === 'child' && relation.person2Id === otherId) {
+                            otherGen = currentGen + 1;
+                        } else if (relation.type === 'spouse') {
+                            otherGen = currentGen;
+                        } else if (relation.type === 'parent' && relation.person1Id === otherId) {
+                            otherGen = currentGen + 1;
+                        } else if (relation.type === 'child' && relation.person1Id === otherId) {
+                            otherGen = currentGen - 1;
+                        } else {
+                            otherGen = currentGen;
+                        }
+                        
+                        generation[otherId] = otherGen;
+                        
+                        if (!horizontalPosition[otherGen]) horizontalPosition[otherGen] = [];
+                        horizontalPosition[otherGen].push(otherId);
+                        
+                        processQueue.push(otherId);
+                        processed.add(otherId);
+                    }
+                }
+                
+                // Calculate X positions for each generation level
+                Object.keys(horizontalPosition).forEach(gen => {
+                    const people = horizontalPosition[gen];
+                    const totalWidth = people.length * cardWidth + (people.length - 1) * horizontalSpacing;
+                    const startX = (container.clientWidth - totalWidth) / 2;
+                    
+                    people.forEach((personId, index) => {
+                        const x = startX + index * (cardWidth + horizontalSpacing);
+                        const y = (parseInt(gen) + 2) * levelHeight; // +2 to ensure we have space for parents
+                        
+                        positions[personId] = { x, y };
+                    });
+                });
+                
+                return positions;
+            }
+
+            function drawConnectionLines(container, positions) {
+                treeData.relations.forEach(relation => {
+                    const pos1 = positions[relation.person1Id];
+                    const pos2 = positions[relation.person2Id];
+                    
+                    if (!pos1 || !pos2) return;
+                    
+                    // For parent-child relationships, draw lines connecting them
+                    if (relation.type === 'parent' || relation.type === 'child') {
+                        const isParentFirst = relation.type === 'parent' && relation.person1Id === relation.person1Id ||
+                                              relation.type === 'child' && relation.person2Id === relation.person1Id;
+                        
+                        const parent = isParentFirst ? pos1 : pos2;
+                        const child = isParentFirst ? pos2 : pos1;
+                        
+                        // Vertical line from parent bottom to child top
+                        const verticalLine = document.createElement('div');
+                        verticalLine.className = 'tree-line vertical-line';
+                        
+                        const cardMiddleOffset = cardWidth / 2;
+                        const startX = parent.x + cardMiddleOffset;
+                        const startY = parent.y + 130; // Below parent card
+                        const endY = child.y - 20; // Above child card
+                        
+                        verticalLine.style.left = `${startX}px`;
+                        verticalLine.style.top = `${startY}px`;
+                        verticalLine.style.height = `${endY - startY}px`;
+                        
+                        container.appendChild(verticalLine);
+                    }
+                    
+                    // For spouse relationships, draw a horizontal line
+                    if (relation.type === 'spouse') {
+                        const horizontalLine = document.createElement('div');
+                        horizontalLine.className = 'tree-line horizontal-line';
+                        
+                        const startX = Math.min(pos1.x, pos2.x) + cardWidth;
+                        const endX = Math.max(pos1.x, pos2.x);
+                        const y = pos1.y + 65; // Middle of card
+                        
+                        horizontalLine.style.left = `${startX}px`;
+                        horizontalLine.style.top = `${y}px`;
+                        horizontalLine.style.width = `${endX - startX}px`;
+                        
+                        container.appendChild(horizontalLine);
+                    }
+                });
+            }
+
+            function openDetailsModal(personId) {
+                const person = treeData.people.find(p => p.id === personId);
+                if (!person) return;
+                
+                document.getElementById('detailsName').textContent = person.name;
+                document.getElementById('detailsPhoto').src = person.photo;
+                document.getElementById('detailsBirthDate').textContent = person.birthDate || '-';
+                document.getElementById('detailsFamilyName').textContent = person.familyName || '-';
+                document.getElementById('detailsCity').textContent = person.city || '-';
+                document.getElementById('detailsProfession').textContent = person.profession || '-';
+                
+                detailsModal.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Arbre Généalogique</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="welcome">
+        <h1>Bienvenue !</h1>
+        <button onclick="goToForm()">Créer votre arbre généalogique</button>
+      </div>
+    
+      <div id="formContainer" class="hidden">
+        <!-- Formulaire de création de l'utilisateur -->
+        ...
+      </div>
+    
+      <div id="treeContainer" class="hidden">
+        <!-- Arbre ici -->
+        <h1>👨‍👩‍👧‍👦 Arbre Généalogique Dynamique</h1>
+        <svg id="treeSvg" width="1200" height="800"></svg>
+      </div>
+  
+  <!-- <div id="tree-container">
+    <svg id="tree"></svg>
+  </div> -->
+  <script src="script.js"></script>
+  <!-- <div id="modal" class="hidden">
+    <div class="modal-content">
+      <h3>Ajouter une personne</h3>
+      <input type="text" id="nameInput" placeholder="Nom">
+      <input type="text" id="photoInput" placeholder="URL de la photo">
+      <select id="relationInput">
+        <option value="enfant">Enfant</option>
+        <option value="parent">Parent</option>
+        <option value="conjoint">Conjoint</option>
+      </select>
+      <button onclick="savePerson()">Ajouter</button>
+      <button onclick="closeModal()">Annuler</button>
+    </div>
+  </div> -->
+  
+</body>
+</html>

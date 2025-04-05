@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbre Généalogique</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .welcome-screen {
+            text-align: center;
+            padding: 40px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .form-container {
+            max-width: 600px;
+            width: 100%;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        #treeContainer {
+            position: relative;
+            width: 100%;
+            height: 800px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: auto;
+            padding: 20px;
+        }
+        .person-card {
+            position: absolute;
+            width: 180px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            z-index: 10;
+        }
+        .person-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+        }
+        .person-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border: 2px solid #4CAF50;
+        }
+        .person-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .card-buttons {
+            display: flex;
+            justify-content: space-around;
+        }
+        .card-btn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .card-btn:hover {
+            background-color: #0b7dda;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .tree-line {
+            position: absolute;
+            background-color: #4CAF50;
+            z-index: 1;
+        }
+        .horizontal-line {
+            height: 2px;
+        }
+        .vertical-line {
+            width: 2px;
+        }
+        .profile-details {
+            text-align: left;
+            margin-top: 20px;
+        }
+        .profile-details h3 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .detail-item {
+            margin-bottom: 10px;
+        }
+        .detail-label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .top-bar {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .debug-info {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <div class="welcome-screen" id="welcomeScreen">
+            <h1>Bienvenue dans votre Arbre Généalogique</h1>
+            <p>Créez et visualisez votre histoire familiale</p>
+            <button class="btn" id="createTreeBtn">Créer votre arbre généalogique</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="formModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeFormModal">&times;</span>
+            <h2>Informations personnelles</h2>
+            <form id="personForm">
+                <div class="form-group">
+                    <label for="name">Nom complet <span style="color: red;">*</span></label>
+                    <input type="text" id="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="photo">URL de la photo</label>
+                    <input type="text" id="photo" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="birthDate">Date de naissance</label>
+                    <input type="date" id="birthDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="familyName">Nom de famille</label>
+                    <input type="text" id="familyName" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="city">Ville de résidence</label>
+                    <input type="text" id="city" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="profession">Métier / Profession</label>
+                    <input type="text" id="profession" class="form-control">
+                </div>
+                <div class="form-group" id="relationshipDiv" style="display: none;">
+                    <label for="relationship">Relation avec <span id="relationWithName"></span></label>
+                    <select id="relationship" class="form-control">
+                        <option value="parent">Parent</option>
+                        <option value="child">Enfant</option>
+                        <option value="spouse">Conjoint</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Ajouter à l'arbre</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeDetailsModal">&times;</span>
+            <h2 id="detailsName">Détails de la personne</h2>
+            <img id="detailsPhoto" class="person-photo" src="https://via.placeholder.com/150" alt="Photo">
+            <div class="profile-details">
+                <div class="detail-item">
+                    <span class="detail-label">Date de naissance:</span>
+                    <span id="detailsBirthDate">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Nom de famille:</span>
+                    <span id="detailsFamilyName">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Ville:</span>
+                    <span id="detailsCity">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Profession:</span>
+                    <span id="detailsProfession">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const createTreeBtn = document.getElementById('createTreeBtn');
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            const mainContainer = document.getElementById('mainContainer');
+            const formModal = document.getElementById('formModal');
+            const detailsModal = document.getElementById('detailsModal');
+            const closeFormModal = document.getElementById('closeFormModal');
+            const closeDetailsModal = document.getElementById('closeDetailsModal');
+            const personForm = document.getElementById('personForm');
+            const relationshipDiv = document.getElementById('relationshipDiv');
+            const relationWithName = document.getElementById('relationWithName');
+
+            let treeData = {
+                people: [],
+                relations: []
+            };
+            let currentPersonId = null;
+
+            // Debug function
+            function addDebugInfo(message) {
+                let debugDiv = document.getElementById('debugInfo');
+                if (!debugDiv) {
+                    debugDiv = document.createElement('div');
+                    debugDiv.id = 'debugInfo';
+                    debugDiv.className = 'debug-info';
+                    document.body.appendChild(debugDiv);
+                }
+                debugDiv.innerHTML += message + '<br>';
+                console.log(message);
+            }
+
+            // Check if tree data exists in local storage
+            const storedData = localStorage.getItem('genealogyTreeData');
+            if (storedData) {
+                try {
+                    treeData = JSON.parse(storedData);
+                    showTreeView();
+                } catch (e) {
+                    console.error("Error parsing stored data:", e);
+                }
+            }
+
+            createTreeBtn.addEventListener('click', function() {
+                if (treeData.people.length === 0) {
+                    // Show form for the first person
+                    relationshipDiv.style.display = 'none';
+                    openFormModal();
+                } else {
+                    showTreeView();
+                }
+            });
+
+            closeFormModal.addEventListener('click', function() {
+                formModal.style.display = 'none';
+            });
+
+            closeDetailsModal.addEventListener('click', function() {
+                detailsModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target === formModal) {
+                    formModal.style.display = 'none';
+                }
+                if (event.target === detailsModal) {
+                    detailsModal.style.display = 'none';
+                }
+            });
+
+            personForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('name').value;
+                const photo = document.getElementById('photo').value || 'https://via.placeholder.com/150';
+                const birthDate = document.getElementById('birthDate').value;
+                const familyName = document.getElementById('familyName').value;
+                const city = document.getElementById('city').value;
+                const profession = document.getElementById('profession').value;
+                
+                const person = {
+                    id: Date.now().toString(),
+                    name,
+                    photo,
+                    birthDate,
+                    familyName,
+                    city,
+                    profession
+                };
+                
+                treeData.people.push(person);
+                
+                if (currentPersonId !== null) {
+                    const relationship = document.getElementById('relationship').value;
+                    
+                    treeData.relations.push({
+                        id: Date.now().toString() + '_rel',
+                        person1Id: currentPersonId,
+                        person2Id: person.id,
+                        type: relationship
+                    });
+                }
+                
+                // Save to local storage
+                localStorage.setItem('genealogyTreeData', JSON.stringify(treeData));
+                
+                // Reset form and close modal
+                personForm.reset();
+                formModal.style.display = 'none';
+                
+                // Update tree view
+                showTreeView();
+            });
+
+            function openFormModal(personId = null) {
+                currentPersonId = personId;
+                
+                if (personId !== null) {
+                    // Adding a relation to an existing person
+                    const person = treeData.people.find(p => p.id === personId);
+                    relationWithName.textContent = person.name;
+                    relationshipDiv.style.display = 'block';
+                } else {
+                    relationshipDiv.style.display = 'none';
+                }
+                
+                formModal.style.display = 'block';
+            }
+
+            function showTreeView() {
+                welcomeScreen.style.display = 'none';
+                
+                // Create tree container if it doesn't exist
+                let treeContainer = document.getElementById('treeContainer');
+                if (!treeContainer) {
+                    mainContainer.innerHTML = `
+                        <div style="width: 100%; max-width: 1200px;">
+                            <div class="top-bar">
+                                <h1>Votre Arbre Généalogique</h1>
+                            </div>
+                            <div id="treeContainer"></div>
+                        </div>
+                    `;
+                    treeContainer = document.getElementById('treeContainer');
+                }
+                
+                renderTree(treeContainer);
+            }
+
+            function renderTree(container) {
+                container.innerHTML = '';
+                
+                // Add debug info
+                addDebugInfo(`Rendering tree with ${treeData.people.length} people and ${treeData.relations.length} relations`);
+                
+                if (treeData.people.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; margin-top: 100px;">Aucune personne dans l\'arbre. Ajoutez-en une pour commencer.</p>';
+                    return;
+                }
+                
+                // Calculate positions
+                const positions = calculatePositions(container);
+                
+                // Debug positions
+                for (const id in positions) {
+                    addDebugInfo(`Position for ${id}: x=${positions[id].x}, y=${positions[id].y}`);
+                }
+                
+                // Draw connection lines first so they appear behind cards
+                drawConnectionLines(container, positions);
+                
+                // Render person cards
+                treeData.people.forEach(person => {
+                    const position = positions[person.id];
+                    if (!position) {
+                        addDebugInfo(`No position found for person ${person.id} (${person.name})`);
+                        return;
+                    }
+                    
+                    const card = document.createElement('div');
+                    card.className = 'person-card';
+                    card.style.left = `${position.x}px`;
+                    card.style.top = `${position.y}px`;
+                    
+                    card.innerHTML = `
+                        <img class="person-photo" src="${person.photo}" alt="${person.name}">
+                        <div class="person-name">${person.name}</div>
+                        <div class="card-buttons">
+                            <button class="card-btn view-details" data-id="${person.id}">Voir détails</button>
+                            <button class="card-btn add-relation" data-id="${person.id}">Ajouter relation</button>
+                        </div>
+                    `;
+                    
+                    container.appendChild(card);
+                    addDebugInfo(`Added card for ${person.name} at x=${position.x}, y=${position.y}`);
+                });
+                
+                // Add event listeners to buttons
+                document.querySelectorAll('.view-details').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const personId = this.getAttribute('data-id');
+                        openDetailsModal(personId);
+                    });
+                });
+                
+                document.querySelectorAll('.add-relation').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const personId = this.getAttribute('data-id');
+                        openFormModal(personId);
+                    });
+                });
+            }
+
+            function calculatePositions(container) {
+                const positions = {};
+                const containerWidth = container.clientWidth || 1000;
+                const containerHeight = container.clientHeight || 800;
+                
+                // If no people, return empty positions
+                if (treeData.people.length === 0) return positions;
+                
+                // Find root person (first person added)
+                let rootPerson = treeData.people[0];
+                
+                // Create a map of generations
+                const generations = {}; // Format: { level: [personIds] }
+                const processed = new Set(); // Keep track of processed people
+                
+                // Start with root at level 0
+                generations[0] = [rootPerson.id];
+                processed.add(rootPerson.id);
+                
+                // Helper function to process a person and their relations
+                function processGeneration(level) {
+                    if (!generations[level]) return;
+                    
+                    const nextLevel = level + 1;
+                    const prevLevel = level - 1;
+                    
+                    for (const personId of generations[level]) {
+                        // Find all relations for this person
+                        const relations = treeData.relations.filter(r => 
+                            r.person1Id === personId || r.person2Id === personId);
+                        
+                        for (const relation of relations) {
+                            const otherId = relation.person1Id === personId ? 
+                                relation.person2Id : relation.person1Id;
+                            
+                            if (processed.has(otherId)) continue;
+                            
+                            if (relation.type === 'child' && relation.person1Id === personId) {
+                                // Person has a child
+                                if (!generations[nextLevel]) generations[nextLevel] = [];
+                                generations[nextLevel].push(otherId);
+                                processed.add(otherId);
+                            } else if (relation.type === 'parent' && relation.person1Id === personId) {
+                                // Person has a parent
+                                if (!generations[prevLevel]) generations[prevLevel] = [];
+                                generations[prevLevel].push(otherId);
+                                processed.add(otherId);
+                            } else if (relation.type === 'spouse') {
+                                // Person has a spouse (same level)
+                                if (!generations[level]) generations[level] = [];
+                                generations[level].push(otherId);
+                                processed.add(otherId);
+                            } else if (relation.type === 'child' && relation.person2Id === personId) {
+                                // Person is a child of someone
+                                if (!generations[prevLevel]) generations[prevLevel] = [];
+                                generations[prevLevel].push(otherId);
+                                processed.add(otherId);
+                            } else if (relation.type === 'parent' && relation.person2Id === personId) {
+                                // Person is a parent of someone
+                                if (!generations[nextLevel]) generations[nextLevel] = [];
+                                generations[nextLevel].push(otherId);
+                                processed.add(otherId);
+                            }
+                        }
+                    }
+                    
+                    // Process next and previous generations
+                    processGeneration(nextLevel);
+                    processGeneration(prevLevel);
+                }
+                
+                // Start processing from the root
+                processGeneration(0);
+                
+                // Find min and max generation levels
+                const levels = Object.keys(generations).map(Number);
+                const minLevel = Math.min(...levels);
+                const maxLevel = Math.max(...levels);
+                const levelRange = maxLevel - minLevel + 1;
+                
+                // Calculate vertical spacing
+                const cardHeight = 140; // Approx height of a card
+                const verticalSpacing = 40;
+                const levelHeight = cardHeight + verticalSpacing;
+                
+                // Position each person
+                for (let level = minLevel; level <= maxLevel; level++) {
+                    if (!generations[level]) continue;
+                    
+                    const peopleInLevel = generations[level];
+                    const cardWidth = 180;
+                    const horizontalSpacing = 20;
+                    const totalWidth = peopleInLevel.length * cardWidth + (peopleInLevel.length - 1) * horizontalSpacing;
+                    const startX = (containerWidth - totalWidth) / 2;
+                    
+                    // Vertical position based on level
+                    const normalizedLevel = level - minLevel; // Make levels start from 0
+                    const y = 40 + normalizedLevel * levelHeight;
+                    
+                    // Assign positions to each person in this level
+                    peopleInLevel.forEach((personId, index) => {
+                        const x = startX + index * (cardWidth + horizontalSpacing);
+                        positions[personId] = { x, y };
+                    });
+                }
+                
+                return positions;
+            }
+
+            function drawConnectionLines(container, positions) {
+                treeData.relations.forEach(relation => {
+                    const pos1 = positions[relation.person1Id];
+                    const pos2 = positions[relation.person2Id];
+                    
+                    if (!pos1 || !pos2) {
+                        addDebugInfo(`Missing position for relation: ${relation.person1Id} -> ${relation.person2Id}`);
+                        return;
+                    }
+                    
+                    const cardWidth = 180;
+                    const cardHeight = 140;
+                    
+                    // For parent-child relationships, draw lines connecting them
+                    if (relation.type === 'parent' || relation.type === 'child') {
+                        // Determine which position is the parent and which is the child
+                        let parentPos, childPos;
+                        if (relation.type === 'parent' && relation.person2Id === relation.person2Id ||
+                            relation.type === 'child' && relation.person1Id === relation.person2Id) {
+                            parentPos = pos1;
+                            childPos = pos2;
+                        } else {
+                            parentPos = pos2;
+                            childPos = pos1;
+                        }
+                        
+                        // Check if parent is above child (should be)
+                        if (parentPos.y < childPos.y) {
+                            // Middle of the cards
+                            const parentMiddleX = parentPos.x + cardWidth / 2;
+                            const childMiddleX = childPos.x + cardWidth / 2;
+                            
+                            // Vertical line from parent bottom to child top
+                            const verticalLine = document.createElement('div');
+                            verticalLine.className = 'tree-line vertical-line';
+                            
+                            const startY = parentPos.y + cardHeight;
+                            const endY = childPos.y;
+                            const lineHeight = endY - startY;
+                            
+                            // Use parent's middle X for vertical line
+                            verticalLine.style.left = `${parentMiddleX}px`;
+                            verticalLine.style.top = `${startY}px`;
+                            verticalLine.style.height = `${lineHeight}px`;
+                            
+                            container.appendChild(verticalLine);
+                            
+                            // If parent and child are not aligned, add horizontal line
+                            if (Math.abs(parentMiddleX - childMiddleX) > 5) {
+                                const horizontalLine = document.createElement('div');
+                                horizontalLine.className = 'tree-line horizontal-line';
+                                
+                                const startX = Math.min(parentMiddleX, childMiddleX);
+                                const endX = Math.max(parentMiddleX, childMiddleX);
+                                const lineWidth = endX - startX;
+                                
+                                horizontalLine.style.left = `${startX}px`;
+                                horizontalLine.style.top = `${childPos.y - 2}px`; // Just above the child card
+                                horizontalLine.style.width = `${lineWidth}px`;
+                                
+                                container.appendChild(horizontalLine);
+                            }
+                        }
+                    }
+                    
+                    // For spouse relationships, draw a horizontal line
+                    if (relation.type === 'spouse') {
+                        const horizontalLine = document.createElement('div');
+                        horizontalLine.className = 'tree-line horizontal-line';
+                        
+                        const startX = Math.min(pos1.x, pos2.x) + cardWidth;
+                        const endX = Math.max(pos1.x, pos2.x);
+                        const lineWidth = endX - startX;
+                        
+                        if (lineWidth > 0) {
+                            horizontalLine.style.left = `${startX}px`;
+                            horizontalLine.style.top = `${pos1.y + cardHeight / 2}px`; // Middle of card
+                            horizontalLine.style.width = `${lineWidth}px`;
+                            
+                            container.appendChild(horizontalLine);
+                        }
+                    }
+                });
+            }
+
+            function openDetailsModal(personId) {
+                const person = treeData.people.find(p => p.id === personId);
+                if (!person) return;
+                
+                document.getElementById('detailsName').textContent = person.name;
+                document.getElementById('detailsPhoto').src = person.photo;
+                document.getElementById('detailsBirthDate').textContent = person.birthDate || '-';
+                document.getElementById('detailsFamilyName').textContent = person.familyName || '-';
+                document.getElementById('detailsCity').textContent = person.city || '-';
+                document.getElementById('detailsProfession').textContent = person.profession || '-';
+                
+                detailsModal.style.display = 'block';
+            }
+
+            // Add a clear data button for testing
+            const clearButton = document.createElement('button');
+            clearButton.textContent = 'Réinitialiser l\'arbre';
+            clearButton.style.position = 'fixed';
+            clearButton.style.bottom = '10px';
+            clearButton.style.left = '10px';
+            clearButton.style.padding = '5px 10px';
+            clearButton.style.backgroundColor = '#ff3860';
+            clearButton.style.color = 'white';
+            clearButton.style.border = 'none';
+            clearButton.style.borderRadius = '4px';
+            clearButton.style.cursor = 'pointer';
+            clearButton.addEventListener('click', function() {
+                if (confirm('Êtes-vous sûr de vouloir supprimer toutes les données de l\'arbre?')) {
+                    localStorage.removeItem('genealogyTreeData');
+                    treeData = {
+                        people: [],
+                        relations: []
+                    };
+                    location.reload();
+                }
+            });
+            document.body.appendChild(clearButton);
+        });
+    </script>
+</body>
+</html>
