@@ -45,12 +45,12 @@ Aucune installation compliquée nécessaire 🎉
 
 1. Clone le dépôt :
 ```bash
-git clone https://github.com/ton-utilisateur/Arbre-Genealogique.git
+git clone https://github.com/cngomc1/Arbre-Genealogique.git
 ```
 
 2. Ouvre le fichier `index.html` dans ton navigateur préféré :
 ```bash
-cd nom-du-repo
+cd Arbre-Genealogique
 start index.html
 ```
 
@@ -89,7 +89,7 @@ Ngom Christine
 ## 📬 Contact
 
 Tu veux collaborer, t’inspirer ou poser une question ?  
-🔗 [LinkedIn](https://www.linkedin.com/in/ngomchristine)  
+🔗 [LinkedIn](https://www.linkedin.com/in/christine-carelle-ngom-4390262a0)  
 📧 cgnomc@gmail.com 
 
 ---
